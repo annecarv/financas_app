@@ -1,8 +1,11 @@
 import 'package:financas_app/common/constants/app_colors.dart';
 import 'package:financas_app/common/constants/app_text_styles.dart';
+import 'package:financas_app/common/constants/utils/validator.dart';
 import 'package:financas_app/common/widgets/custom_text_form_field.dart';
 import 'package:financas_app/common/widgets/password_form_field.dart';
 import 'package:financas_app/common/widgets/primary_button.dart';
+import 'package:financas_app/features/sign_up/sign_up_controller.dart';
+import 'package:financas_app/features/sign_up/sign_up_state.dart';
 import 'package:flutter/material.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -18,7 +21,59 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+  final _controller = SignUpController();
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(() {
+      if (_controller.state is SignUpLoadingState) {
+        showDialog(
+          context: context,
+          builder: (context) => Center(child: CircularProgressIndicator()),
+        );
+      }
+      if (_controller.state is SignUpSucessState) {
+        Navigator.pop(
+          context,
+        ); //Mata a pilha de widget e diálogo de carregamento
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:
+                (context) => const Scaffold(
+                  body: Center(child: Text("Nova tela a fazer")),
+                ),
+          ),
+        ); // Redireciona para a página inicial
+      }
+      if (_controller.state is SignUpErrorState) {
+        showModalBottomSheet<void>(
+          //TODO: Corrigir esse modal ta horroroso e dps transformar em widget
+          context: context,
+          builder: (BuildContext context) {
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                (_controller.state as SignUpErrorState).toString(),
+                style: AppTextStyles.mediumText.copyWith(color: AppColors.red),
+              ),
+            );
+          },
+        );
+      }
+    });
+
+    // Inicialização de controladores ou outras variáveis, se necessário
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,12 +109,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     errorText: '',
                     helperText: '',
                     controller: _nameController,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor, digite seu nome.';
-                      }
-                      return null;
-                    },
+                    validator: Validator.validateName,
                   ),
                   CustomTextFormField(
                     padding: const EdgeInsets.all(8.0),
@@ -68,26 +118,16 @@ class _SignUpPageState extends State<SignUpPage> {
                     errorText: '',
                     helperText: '',
                     controller: _emailController,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor, digite seu email.';
-                      }
-                      return null;
-                    },
+                    validator: Validator.validateEmail,
                   ),
                   PasswordFormField(
+                    controller: _passwordController,
                     padding: const EdgeInsets.all(8.0),
                     hintText: '***********',
                     labelText: 'Escolha uma senha',
                     errorText: '',
                     helperText: '',
-                    controller: _passwordController,
-                    validator: (value) {
-                      if (value == null || value.isEmpty || value.length < 6) {
-                        return 'A senha deve ter pelo menos 6 caracteres.';
-                      }
-                      return null;
-                    },
+                    validator: Validator.validatePassword,
                   ),
                   PasswordFormField(
                     padding: const EdgeInsets.all(8.0),
@@ -96,15 +136,11 @@ class _SignUpPageState extends State<SignUpPage> {
                     errorText: '',
                     helperText: ' ',
                     controller: _confirmPasswordController,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor, confirme sua senha.';
-                      }
-                      if (value != _passwordController.text) {
-                        return 'As senhas não coincidem.';
-                      }
-                      return null;
-                    },
+                    validator:
+                        (value) => Validator.validateConfirmPassword(
+                          value,
+                          _passwordController.text,
+                        ),
                   ),
                   const SizedBox(height: 24),
                   PrimaryButton(
@@ -112,7 +148,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     onPressed: () {
                       final valid = _formKey.currentState?.validate() ?? false;
                       if (valid) {
-                        print('Conta criada com sucesso!');
+                        _controller.doSignUp();
                         // Aqui você pode prosseguir com o cadastro
                       }
                     },
@@ -124,5 +160,15 @@ class _SignUpPageState extends State<SignUpPage> {
         ),
       ),
     );
+  }
+
+  String? _validateConfirmPassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Por favor, confirme sua senha.';
+    }
+    if (value != _passwordController.text) {
+      return 'As senhas não coincidem.';
+    }
+    return null;
   }
 }
