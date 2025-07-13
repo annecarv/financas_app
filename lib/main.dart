@@ -1,9 +1,14 @@
+import 'package:financas_app/common/constants/utils/routes.dart';
+import 'package:financas_app/features/onboarding/onboarding_page.dart';
 import 'package:financas_app/features/sign_up/sign_up_page.dart';
+import 'package:financas_app/features/splash/splash_page.dart';
+import 'package:financas_app/locator.dart';
 import 'package:flutter/material.dart';
 import 'package:financas_app/app.dart';
 
 void main() {
-  runApp(const App());
+  setupDependencies();
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -11,9 +16,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: SignUpPage(),
+      //home: SplashPage(),
+      initialRoute: NamedRoute.splash,
+      routes: {
+        NamedRoute.splash: (context) => const SplashPage(),
+        NamedRoute.onboarding: (context) => const OnboardingPage(),
+        NamedRoute.signUp: (context) => const SignUpPage(),
+      },
     );
   }
 }

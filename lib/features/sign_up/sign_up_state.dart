@@ -8,4 +8,7 @@ class SignUpLoadingState extends SignUpState {
 
 class SignUpSucessState extends SignUpState {}
 
-class SignUpErrorState extends SignUpState {}
+class SignUpErrorState extends SignUpState {
+  final String message;
+  SignUpErrorState(String string, {this.message = "Erro ao cadastrar usuário"});
+}

@@ -6,6 +6,7 @@ import 'package:financas_app/common/widgets/password_form_field.dart';
 import 'package:financas_app/common/widgets/primary_button.dart';
 import 'package:financas_app/features/sign_up/sign_up_controller.dart';
 import 'package:financas_app/features/sign_up/sign_up_state.dart';
+import 'package:financas_app/locator.dart';
 import 'package:flutter/material.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -17,17 +18,19 @@ class SignUpPage extends StatefulWidget {
 
 class _SignUpPageState extends State<SignUpPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
-  final _controller = SignUpController();
+  final _controller = locator.get<SignUpController>();
 
   @override
   void dispose() {
+    _emailController
+        .dispose(); //destroi as informacoes quando a classe nao é mais utilizada
     _passwordController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -56,19 +59,25 @@ class _SignUpPageState extends State<SignUpPage> {
         ); // Redireciona para a página inicial
       }
       if (_controller.state is SignUpErrorState) {
-        showModalBottomSheet<void>(
-          //TODO: Corrigir esse modal ta horroroso e dps transformar em widget
-          context: context,
-          builder: (BuildContext context) {
-            return Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                (_controller.state as SignUpErrorState).toString(),
-                style: AppTextStyles.mediumText.copyWith(color: AppColors.red),
+        final errorMessage =
+            _controller.state
+                as SignUpErrorState; // TODO: corrigir modal recriando e personalizando msgs de erro
+        Navigator.pop(context);
+        BottomSheet(
+          builder:
+              (context) => Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Ocorreu um erro. Tente novamente.', // Add the missing text
+                  style: AppTextStyles.mediumText.copyWith(
+                    color: AppColors.red,
+                  ),
+                ),
               ),
-            );
+          onClosing: () {
+            Navigator.pop(context); // Fecha o BottomSheet
           },
-        );
+        ); // Fecha o diálogo de carregamento
       }
     });
 
@@ -148,7 +157,11 @@ class _SignUpPageState extends State<SignUpPage> {
                     onPressed: () {
                       final valid = _formKey.currentState?.validate() ?? false;
                       if (valid) {
-                        _controller.doSignUp();
+                        _controller.signUp(
+                          name: _nameController.text,
+                          email: _emailController.text,
+                          password: _passwordController.text,
+                        );
                         // Aqui você pode prosseguir com o cadastro
                       }
                     },
