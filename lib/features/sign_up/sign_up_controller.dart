@@ -1,9 +1,13 @@
 import 'package:financas_app/features/sign_up/sign_up_state.dart';
+import 'package:financas_app/services/auth_service.dart';
 import 'package:flutter/foundation.dart';
 
 class SignUpController extends ChangeNotifier {
-  SignUpState _state = SignUpInitialState();
+  final AuthService
+  _service; //classe abstrata AuthService que define os métodos de autenticação
 
+  SignUpController(this._service); //Controller recebe o serviço de autenticação
+  SignUpState _state = SignUpInitialState();
   SignUpState get state => _state; //getter para acessar o estado atual
 
   //metodo que realiza a alteracao de estado
@@ -15,17 +19,18 @@ class SignUpController extends ChangeNotifier {
     notifyListeners(); //notifica os ouvintes de que o estado mudou
   }
 
-  Future<bool> doSignUp() async {
+  Future<void> signUp({
+    required String? name,
+    required String email,
+    required String password,
+  }) async {
     _changeState(SignUpLoadingState());
 
     try {
-      await Future.delayed(Duration(seconds: 2));
-      throw Exception('Erro ao logar'); // Simula um erro para teste
+      await _service.signUp(name: name, email: email, password: password);
       _changeState(SignUpSucessState());
-      return true;
     } catch (e) {
-      _changeState(SignUpErrorState());
-      return false;
+      _changeState(SignUpErrorState(e.toString()));
     }
   }
 }

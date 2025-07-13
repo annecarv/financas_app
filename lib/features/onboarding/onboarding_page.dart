@@ -1,5 +1,6 @@
 import 'package:financas_app/common/constants/app_colors.dart';
 import 'package:financas_app/common/constants/app_text_styles.dart';
+import 'package:financas_app/common/constants/utils/routes.dart';
 import 'package:financas_app/common/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
 
@@ -14,6 +15,7 @@ class OnboardingPage extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(height: 24.0),
+
             /// Cabeçalho verde
             Expanded(
               flex: 1,
@@ -72,7 +74,7 @@ class OnboardingPage extends StatelessWidget {
                   ),
                   GestureDetector(
                     onTap: () {
-                      print('Criar conta');
+                      Navigator.pushNamed(context, NamedRoute.signUp);
                     },
                     child: Text(
                       'Crie Agora!',
